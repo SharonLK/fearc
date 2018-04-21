@@ -1,6 +1,6 @@
 # FEARC
 
-This fierce projects aims to help people around the world to work on
+This fierce project aims to help people around the world to work on
 their fitness in an enjoyable matter with their friends.
 
 Despite being quite simple, the **Fitness & Entertainment AR Console**
