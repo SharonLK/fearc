@@ -159,3 +159,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# config file ignore (so every one will change it locally)
+/config.json
