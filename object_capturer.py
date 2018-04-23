@@ -7,10 +7,10 @@ def get_json():
     config = json.loads(str(data))
     return config
 
-lower_limits = {'green':np.array([50,100,100]),'blue':np.array([110,50,50])}
-upper_limits = {'green':np.array([70,255,255]),'blue':np.array([130,255,255])}
+lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50])}
+upper_limits = {'green':np.array([130,255,255]),'blue':np.array([130,255,255])}
 
-def find_color(color,lower_limits,upper_limits):
+def find_color(frame,color,lower_limits,upper_limits):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower = lower_limits[color]
     upper = upper_limits[color]
