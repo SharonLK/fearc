@@ -7,8 +7,8 @@ def get_json():
     config = json.loads(str(data))
     return config
 
-lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50])}
-upper_limits = {'green':np.array([130,255,255]),'blue':np.array([130,255,255])}
+lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50]), 'orange':np.array([5, 50, 50],np.uint8)}
+upper_limits = {'green':np.array([130,255,255]),'blue':np.array([130,255,255]),'orange':np.array([15, 255, 255],np.uint8)}
 
 def find_color(frame,color,lower_limits,upper_limits):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -25,7 +25,7 @@ cap = cv2.VideoCapture(config['video_path'])
 ret, frame = cap.read()
 
 while frame is not None:
-    find_color(frame,'green',lower_limits,upper_limits)
+    find_color(frame,'orange',lower_limits,upper_limits)
     # Display the resulting frame
     # cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
