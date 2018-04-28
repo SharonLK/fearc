@@ -14,6 +14,14 @@ def get_json():
     config = json.loads(str(data))
     return config
 
+# split images to left and right
+def split_image(image):
+    width=image.shape[1]
+    half_width = width // 2
+    image1 = image[:,0:half_width]
+    image2 = image[:,half_width:]
+    return (image1 , image2)
+
 # find color mask in frame
 def find_mask(frame,color,lower_limits,upper_limits):
     # t0 = time.time()
@@ -57,9 +65,9 @@ def find_largest_object(img,mask):
     # t1 = time.time()
     # print(t1-t0)
 
-    #show above image
+    # add rectabgle above image
     img=cv2.rectangle(img, (x, y), (x + w, y + h), (0,255,0), 5)
-    cv2.imshow('IMG', img)
+    return img
 
 # get video capture from config
 config = get_json()
@@ -70,13 +78,22 @@ ret, frame = cap.read()
 
 while frame is not None:
 
+    # splitting images to left and right
+    (left,right) = split_image(frame)
+
     # find mask of color
-    mask = find_mask(frame,'orange',lower_limits,upper_limits)
+    left_mask = find_mask(left,'orange',lower_limits,upper_limits)
+    right_mask = find_mask(right, 'orange', lower_limits, upper_limits)
 
-    # find largrst object bounding box
-    find_largest_object(frame,mask)
+    # find largest object bounding box in each half
+    left_final = find_largest_object(left,left_mask)
+    right_final = find_largest_object(right, right_mask)
 
-    # make imshows work
+    # putting images back together
+    final_frame = np.concatenate((left_final , right_final ), axis=1)
+
+    # show frame
+    cv2.imshow('video', final_frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
