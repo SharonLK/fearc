@@ -1,6 +1,7 @@
 import cv2
 import json
 import numpy as np
+import time
 
 # define colors spectrums
 lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50]), 'orange':np.array([5, 50, 50],np.uint8)}
@@ -15,6 +16,7 @@ def get_json():
 
 # find color mask in frame
 def find_mask(frame,color,lower_limits,upper_limits):
+    # t0 = time.time()
 
     # convert color to hsv
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -26,6 +28,9 @@ def find_mask(frame,color,lower_limits,upper_limits):
     # create mask by limits
     mask = cv2.inRange(hsv, lower, upper)
 
+    # t1 = time.time()
+    # print(t1-t0)
+
     # old unused code
     # res = cv2.bitwise_and(frame, frame, mask=mask)
     # cv2.imshow('frame', frame)
@@ -35,6 +40,7 @@ def find_mask(frame,color,lower_limits,upper_limits):
 
 # find largest object in image, currently shows it above img
 def find_largest_object(img,mask):
+    # t0 = time.time()
 
     # find all objects in mask
     _, contours, hier = cv2.findContours(mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -47,6 +53,9 @@ def find_largest_object(img,mask):
 
     # find bounding box
     (x, y, w, h) = cv2.boundingRect(biggest_contour)
+
+    # t1 = time.time()
+    # print(t1-t0)
 
     #show above image
     img=cv2.rectangle(img, (x, y), (x + w, y + h), (0,255,0), 5)
