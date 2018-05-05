@@ -66,7 +66,9 @@ def find_largest_object(img,mask):
     # print(t1-t0)
 
     # add rectabgle above image
-    img=cv2.rectangle(img, (x, y), (x + w, y + h), (0,255,0), 5)
+
+    point = int(x + w/2) , int(y + h/2)
+    img=cv2.line(img, point, point, (0,255,0), 5)
     return img
 
 # get video capture from config
