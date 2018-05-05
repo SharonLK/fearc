@@ -2,6 +2,7 @@ import cv2
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 import time
 
 
@@ -31,6 +32,8 @@ print(input_points)
 source_points = np.array(input_points,dtype=dt)
 print(source_points)
 tform = cv2.getPerspectiveTransform(source_points ,destination_points )
+with open('calibrationCache.pkl', 'wb') as cache:  # Python 3: open(..., 'wb')
+    pickle.dump(tform, cache)
 print(tform)
 warped = cv2.warpPerspective(frame, tform, (width , height ))
 plt.figure(1)
@@ -38,4 +41,5 @@ plt.imshow(warped)
 plt.show()
 # When everything done, release the capture
 cap.release()
+plt.close("all")
 cv2.destroyAllWindows()
