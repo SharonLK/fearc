@@ -2,6 +2,9 @@ import cv2
 import json
 import numpy as np
 import time
+import os.path
+import pickle
+
 
 # define colors spectrums
 lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50]), 'orange':np.array([5, 50, 50],np.uint8)}
@@ -77,8 +80,15 @@ cap = cv2.VideoCapture(config['video_path'])
 
 # read first frame
 ret, frame = cap.read()
+height , width ,_ = frame.shape
+is_calibrated = os.path.exists("calibrationCache.pkl")
+if is_calibrated:
+    with open(r"calibrationCache.pkl", "rb") as calibration_file:
+        tform = pickle.load(calibration_file)
 
 while frame is not None:
+    if is_calibrated:
+        frame = cv2.warpPerspective(frame, tform, (width, height))
 
     # splitting images to left and right
     (left,right) = split_image(frame)
@@ -101,6 +111,7 @@ while frame is not None:
 
     # Capture next frame
     ret, frame = cap.read()
+
 
 # When everything done, release the capture
 cap.release()
