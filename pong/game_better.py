@@ -1,11 +1,14 @@
+import os
 import sys
 
 import pygame
 
-WIDTH = 1280
-HEIGHT = 720
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-RADIUS = 10
+WIDTH = 1700
+HEIGHT = 920
+
+RADIUS = 20
 ACCELERATION = 1.2
 
 WHITE = (255, 255, 255)
@@ -16,15 +19,15 @@ class Pong:
     def __init__(self):
         self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
         self.direction = (4, 4)
-        self.pad1_pos = pygame.Rect(10, int(HEIGHT / 2), 10, 80)
-        self.pad2_pos = pygame.Rect(WIDTH - 20, int(HEIGHT / 2), 10, 80)
+        self.pad1_pos = pygame.Rect(20, int(HEIGHT / 2), 40, 200)
+        self.pad2_pos = pygame.Rect(WIDTH - 50, int(HEIGHT / 2), 40, 200)
 
         self.mousex = 0
         self.mousey = 0
 
         self.score = (0, 0)
 
-        self.font = pygame.font.Font('freesansbold.ttf', 44)
+        self.font = pygame.font.Font('freesansbold.ttf', 64)
 
     def update(self):
         # Move the ball in the specified direction
@@ -57,13 +60,13 @@ class Pong:
             self.direction = (-abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
 
         # Check if ball intersects with the right side of the board
-        if self.ball_pos[0] + 10 >= WIDTH:
+        if self.ball_pos[0] + RADIUS >= WIDTH:
             self.score = (self.score[0] + 1, self.score[1])
             self.direction = (4, 4)
             self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
 
         # Check if ball intersects with the left side of the board
-        if self.ball_pos[0] - 10 <= 0:
+        if self.ball_pos[0] - RADIUS <= 0:
             self.score = (self.score[0], self.score[1] + 1)
             self.direction = (4, 4)
             self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
@@ -74,9 +77,9 @@ class Pong:
         pygame.draw.rect(DISPLAY, WHITE, self.pad2_pos)
 
         surf = self.font.render("{}".format(self.score[0]), True, (124, 174, 205))
-        DISPLAY.blit(surf, (100, 50))
+        DISPLAY.blit(surf, (200, 75))
         surf = self.font.render("{}".format(self.score[1]), True, (124, 174, 205))
-        DISPLAY.blit(surf, (WIDTH - 100, 50))
+        DISPLAY.blit(surf, (WIDTH - 200, 75))
 
 
 if __name__ == "__main__":
@@ -106,4 +109,4 @@ if __name__ == "__main__":
 
         pygame.display.update()
 
-        FPS_CLOCK.tick(60)
+        FPS_CLOCK.tick(120)
