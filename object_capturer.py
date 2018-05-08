@@ -79,7 +79,7 @@ class objectCapturer:
         # get video capture from config
         config = self.get_json()
         self.cap = cv2.VideoCapture(config['video_path'])
-
+        self.is_video_done = False
         # read first frame
         ret, self.frame = self.cap.read()
         self.height , self.width ,_ = self.frame.shape
@@ -109,11 +109,9 @@ class objectCapturer:
         # show frame
         cv2.imshow('video', final_frame)
         cv2.waitKey(1)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
-
-        # Capture next frame
         ret, self.frame = self.cap.read()
+
+        self.is_video_done = self.frame is None
         return point_left , point_right
 
     def close_capturer(self):
@@ -122,7 +120,7 @@ class objectCapturer:
 
 if __name__ == "__main__":
     objectCapturer = objectCapturer()
-    while objectCapturer.frame is not None:
+    while not objectCapturer.is_video_done:
         pointL , pointR = objectCapturer.get_locations()
 
 
