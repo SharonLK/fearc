@@ -1,3 +1,4 @@
+import numpy
 import os
 import sys
 
@@ -6,7 +7,7 @@ import pygame
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 WIDTH = 1700
-HEIGHT = 920
+HEIGHT = 900
 
 RADIUS = 20
 ACCELERATION = 1.2
@@ -58,6 +59,8 @@ class Pong:
                 self.ball_pos[0] - RADIUS < self.pad2_pos.right and \
                 self.ball_pos[0] + RADIUS > self.pad2_pos.left:
             self.direction = (-abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
+
+        self.direction = (numpy.clip(self.direction[0], -12, 12), numpy.clip(self.direction[1], -12, 12))
 
         # Check if ball intersects with the right side of the board
         if self.ball_pos[0] + RADIUS >= WIDTH:
