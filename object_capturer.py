@@ -27,6 +27,20 @@ class objectCapturer:
         image2 = image[:,half_width:]
         return (image1 , image2)
 
+    @staticmethod
+    def get_hue(image):
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        hue = hsv[:, :, 0]
+        return hue
+
+    @staticmethod
+    def get_hue_mask(image1,image2):
+        hue1 = objectCapturer.get_hue(image1)
+        hue2 = objectCapturer.get_hue(image2)
+        hue_diff = cv2.absdiff(hue1, hue2)
+        _, mask = cv2.threshold(hue_diff, 30, 255, cv2.THRESH_BINARY)
+        return mask
+
     # find color mask in frame
     def find_mask(self,frame,color,lower_limits,upper_limits):
         # t0 = time.time()
@@ -62,6 +76,8 @@ class objectCapturer:
         contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
 
         # choose biggest counter
+        if len(contour_sizes) == 0:
+            return None, img
         biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
 
         # find bounding box
@@ -81,34 +97,46 @@ class objectCapturer:
         config = self.get_json()
         self.cap = cv2.VideoCapture(config['video_path'])
         self.is_video_done = False
-        self.fgbg = cv2.createBackgroundSubtractorMOG2()
-
         # read first frame
         ret, self.frame = self.cap.read()
-        self.fgmask = self.fgbg.apply(self.frame)
+        self.full_first_frame = self.frame
         
         self.height , self.width ,_ = self.frame.shape
         self.is_calibrated = os.path.exists("calibrationCache.pkl")
         if self.is_calibrated:
             with open(r"calibrationCache.pkl", "rb") as calibration_file:
                 self.tform = pickle.load(calibration_file)
+        self.first_frame = self.frame
 
     def get_locations(self):
+        mask_full = objectCapturer.get_hue_mask(self.full_first_frame,self.frame)
+        cv2.imshow('maskfull', mask_full)
+        cv2.waitKey(1)
         if self.is_calibrated:
             self.frame = cv2.warpPerspective(self.frame, self.tform, (self.width, self.height))
+            mask_calibrated = cv2.warpPerspective(mask_full, self.tform, (self.width, self.height))
+            cv2.imshow('mask_calibrated', mask_calibrated)
+            cv2.waitKey(1)
+        else:
+            mask_calibrated = mask_full
+        (left_mask, right_mask) = self.split_image(mask_calibrated)
 
-        # splitting images to left and right
-        # (left, right) = self.split_image(self.frame)
-
-        # find mask of color
-        # left_mask = self.find_mask(left, 'orange', lower_limits, upper_limits)
-        # right_mask = self.find_mask(right, 'orange', lower_limits, upper_limits)
-        left_mask, right_mask = self.split_image(self.fgmask)
-
-        # find largest object bounding box in each half
-        point_left , left_final = self.find_largest_object(left, left_mask)
-        point_right , right_final = self.find_largest_object(right, right_mask)
-        point_right = (point_right[0] , point_right[1] + self.width/2 )
+        # # splitting images to left and right
+        (left, right) = self.split_image(self.frame)
+        #
+        # # find mask of color
+        # # left_mask = self.find_mask(left, 'orange', lower_limits, upper_limits)
+        # # right_mask = self.find_mask(right, 'orange', lower_limits, upper_limits)
+        # mask = objectCapturer.get_hue_mask(self.first_frame,self.frame)
+        # (left_mask,right_mask) = self.split_image(mask)
+        # cv2.imshow('maskleft', mask)
+        # cv2.waitKey(1)
+        #
+        # # find largest object bounding box in each half
+        point_left, left_final = self.find_largest_object(left, left_mask)
+        point_right, right_final = self.find_largest_object(right, right_mask)
+        if point_right is not None:
+            point_right = (point_right[0], point_right[1] + self.width/2)
         # putting images back together
         final_frame = np.concatenate((left_final, right_final), axis=1)
 
@@ -116,8 +144,6 @@ class objectCapturer:
         cv2.imshow('video', final_frame)
         cv2.waitKey(1)
         ret, self.frame = self.cap.read()
-        self.fgmask = self.fgbg.apply(self.fgmask)
-
         self.is_video_done = self.frame is None
         return point_left , point_right
 
