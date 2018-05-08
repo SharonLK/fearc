@@ -63,22 +63,28 @@ class Pong:
 
         self.direction = (numpy.clip(self.direction[0], -12, 12), numpy.clip(self.direction[1], -12, 12))
 
-        available_directions = [-4, 4]
-        x_dire = random.choice(available_directions)
-        y_dire = random.choice(available_directions)
-
-
         # Check if ball intersects with the right side of the board
-        if self.ball_pos[0] + RADIUS >= WIDTH:
-            self.score = (self.score[0] + 1, self.score[1])
+        right_player_loss = self.ball_pos[0] + RADIUS >= WIDTH
+        # Check if ball intersects with the left side of the board
+        left_player_loss = self.ball_pos[0] - RADIUS <= 0
+
+        if right_player_loss or left_player_loss:
+            # init the random position and direction for the ball
+            available_directions = [-4, 4]
+            x_dire = random.choice(available_directions)
+            y_dire = random.choice(available_directions)
+
             self.direction = (x_dire, y_dire)
             self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
 
-        # Check if ball intersects with the left side of the board
-        if self.ball_pos[0] - RADIUS <= 0:
-            self.score = (self.score[0], self.score[1] + 1)
-            self.direction = (x_dire, y_dire)
-            self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
+            # Check if ball intersects with the right side of the board
+            if right_player_loss:
+                self.score = (self.score[0] + 1, self.score[1])
+
+            # Check if ball intersects with the left side of the board
+            else:
+                self.score = (self.score[0], self.score[1] + 1)
+
 
     def draw(self):
         pygame.draw.circle(DISPLAY, WHITE, (int(self.ball_pos[0]), int(self.ball_pos[1])), RADIUS)
