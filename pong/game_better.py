@@ -7,8 +7,8 @@ import pygame
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-WIDTH = 1280
-HEIGHT = 720
+WIDTH = 1920
+HEIGHT = 1080
 
 RADIUS = 20
 ACCELERATION = 1.2
@@ -106,18 +106,13 @@ if __name__ == "__main__":
     pygame.display.set_caption('FEARC')
 
     pong = Pong()
-    running = True
-    print("start")
-    while running:
+
+    while True:
         for event in pygame.event.get():
-            print(event)
-            if event.type == pygame.QUIT:
-                print("exit key")
-
-                pygame.quit()
-                running = False  # Be interpreter friendly
-                sys.exit()
-
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
             elif event.type == pygame.MOUSEMOTION:
                 pong.mousex = event.pos[0]
                 pong.mousey = event.pos[1]
