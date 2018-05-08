@@ -25,56 +25,65 @@ class Pong:
         self.DISPLAY = pygame.display.set_mode([WIDTH, HEIGHT], pygame.DOUBLEBUF)
         pygame.display.set_caption('FEARC')
 
-        self.ball_poses = [(int(WIDTH / 2), int(HEIGHT / 2))]
+        self.ball_poses = []
         self.radius = 45
-        self.directions = [(4, 4)]
+        self.directions = []
         self.pad1_pos = pygame.Rect(30, int(HEIGHT / 2), 60, 200)
         self.pad2_pos = pygame.Rect(WIDTH - 90, int(HEIGHT / 2), 60, 200)
-
-        self.mousex = 0
-        self.mousey = 0
 
         self.score = (0, 0)
 
         self.font = pygame.font.Font('freesansbold.ttf', 192)
 
+        self._reset_balls()
+
+    def _reset_balls(self):
+        self.ball_poses.clear()
+        self.directions.clear()
+
+        choices = [4, -4]
+
+        for i in range(2):
+            self.ball_poses.append((int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius)))
+            self.directions.append((choices[random.randint(0, 1)], choices[random.randint(0, 1)]))
+
     def update(self):
         # Move the ball in the specified direction
-        for i, (pos, direction) in enumerate(zip(self.ball_poses, self.directions)):
-            self.ball_poses[i] = (pos[0] + direction[0], pos[1] + direction[1])
+        for i in range(len(self.ball_poses)):
+            self.ball_poses[i] = (self.ball_poses[i][0] + self.directions[i][0], self.ball_poses[i][1] + self.directions[i][1])
 
             # If ball intersects with the bottom of the screen
-            if pos[1] + self.radius >= HEIGHT:
-                self.directions[i] = (direction[0], -abs(direction[1]))
+            if self.ball_poses[i][1] + self.radius >= HEIGHT:
+                self.directions[i] = (self.directions[i][0], -abs(self.directions[i][1]))
 
             # If ball intersects with the top of the screen
-            if pos[1] - self.radius <= 0:
-                self.directions[i] = (direction[0], abs(direction[1]))
+            if self.ball_poses[i][1] - self.radius <= 0:
+                self.directions[i] = (self.directions[i][0], abs(self.directions[i][1]))
 
             # Check if the ball intersects with the left paddle
-            if pos[1] - self.radius < self.pad1_pos.bottom and \
-                    pos[1] + self.radius > self.pad1_pos.top and \
-                    pos[0] - self.radius < self.pad1_pos.right and \
-                    pos[0] + self.radius > self.pad1_pos.left:
-                self.directions[i] = (abs(direction[0]) * ACCELERATION, direction[1] * ACCELERATION)
+            if self.ball_poses[i][1] - self.radius < self.pad1_pos.bottom and \
+                    self.ball_poses[i][1] + self.radius > self.pad1_pos.top and \
+                    self.ball_poses[i][0] - self.radius < self.pad1_pos.right and \
+                    self.ball_poses[i][0] + self.radius > self.pad1_pos.left:
+                self.directions[i] = (abs(self.directions[i][0]) * ACCELERATION, self.directions[i][1] * ACCELERATION)
 
             # Check if the ball intersects with the right paddle
-            if pos[1] - self.radius < self.pad2_pos.bottom and \
-                    pos[1] + self.radius > self.pad2_pos.top and \
-                    pos[0] - self.radius < self.pad2_pos.right and \
-                    pos[0] + self.radius > self.pad2_pos.left:
-                self.directions[i] = (-abs(direction[0]) * ACCELERATION, direction[1] * ACCELERATION)
+            if self.ball_poses[i][1] - self.radius < self.pad2_pos.bottom and \
+                    self.ball_poses[i][1] + self.radius > self.pad2_pos.top and \
+                    self.ball_poses[i][0] - self.radius < self.pad2_pos.right and \
+                    self.ball_poses[i][0] + self.radius > self.pad2_pos.left:
+                self.directions[i] = (-abs(self.directions[i][0]) * ACCELERATION, self.directions[i][1] * ACCELERATION)
 
-            self.directions[i] = (numpy.clip(direction[0], -16, 16), numpy.clip(direction[1], -16, 16))
+            self.directions[i] = (numpy.clip(self.directions[i][0], -16, 16), numpy.clip(self.directions[i][1], -16, 16))
 
             # Check if ball intersects with the right side of the board
-            if pos[0] + self.radius >= WIDTH:
+            if self.ball_poses[i][0] + self.radius >= WIDTH:
                 self.score = (self.score[0] + 1, self.score[1])
                 self.directions[i] = (-4, 4)
                 self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
             # Check if ball intersects with the left side of the board
-            if pos[0] - self.radius <= 0:
+            if self.ball_poses[i][0] - self.radius <= 0:
                 self.score = (self.score[0], self.score[1] + 1)
                 self.directions[i] = (-4, 4)
                 self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
