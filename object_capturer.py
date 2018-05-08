@@ -19,7 +19,8 @@ class objectCapturer:
         return config
 
     # split images to left and right
-    def split_image(self,image):
+    @staticmethod
+    def split_image(image):
         width=image.shape[1]
         half_width = width // 2
         image1 = image[:,0:half_width]
@@ -80,8 +81,12 @@ class objectCapturer:
         config = self.get_json()
         self.cap = cv2.VideoCapture(config['video_path'])
         self.is_video_done = False
+        self.fgbg = cv2.createBackgroundSubtractorMOG2()
+
         # read first frame
         ret, self.frame = self.cap.read()
+        self.fgmask = self.fgbg.apply(self.frame)
+        
         self.height , self.width ,_ = self.frame.shape
         self.is_calibrated = os.path.exists("calibrationCache.pkl")
         if self.is_calibrated:
@@ -93,11 +98,12 @@ class objectCapturer:
             self.frame = cv2.warpPerspective(self.frame, self.tform, (self.width, self.height))
 
         # splitting images to left and right
-        (left, right) = self.split_image(self.frame)
+        # (left, right) = self.split_image(self.frame)
 
         # find mask of color
-        left_mask = self.find_mask(left, 'orange', lower_limits, upper_limits)
-        right_mask = self.find_mask(right, 'orange', lower_limits, upper_limits)
+        # left_mask = self.find_mask(left, 'orange', lower_limits, upper_limits)
+        # right_mask = self.find_mask(right, 'orange', lower_limits, upper_limits)
+        left_mask, right_mask = self.split_image(self.fgmask)
 
         # find largest object bounding box in each half
         point_left , left_final = self.find_largest_object(left, left_mask)
@@ -110,6 +116,7 @@ class objectCapturer:
         cv2.imshow('video', final_frame)
         cv2.waitKey(1)
         ret, self.frame = self.cap.read()
+        self.fgmask = self.fgbg.apply(self.fgmask)
 
         self.is_video_done = self.frame is None
         return point_left , point_right
