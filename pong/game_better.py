@@ -26,10 +26,12 @@ class Pong:
         pygame.display.set_caption('FEARC')
 
         self.ball_poses = []
-        self.radius = 45
+        self.radius = 100
         self.directions = []
         self.pad1_pos = pygame.Rect(30, int(HEIGHT / 2), 60, 200)
         self.pad2_pos = pygame.Rect(WIDTH - 90, int(HEIGHT / 2), 60, 200)
+
+        self.bonuses = []
 
         self.score = (0, 0)
 
@@ -43,9 +45,12 @@ class Pong:
 
         choices = [4, -4]
 
-        for i in range(2):
+        for i in range(1):
             self.ball_poses.append((int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius)))
             self.directions.append((choices[random.randint(0, 1)], choices[random.randint(0, 1)]))
+
+    def _add_bonus(self):
+        self.bonuses.append((random.randint(200, WIDTH - 200), random.randint(200, HEIGHT - 200)))
 
     def update(self):
         # Move the ball in the specified direction
@@ -66,6 +71,8 @@ class Pong:
                     self.ball_poses[i][0] - self.radius < self.pad1_pos.right and \
                     self.ball_poses[i][0] + self.radius > self.pad1_pos.left:
                 self.directions[i] = (abs(self.directions[i][0]) * ACCELERATION, self.directions[i][1] * ACCELERATION)
+                if random.randint(0, 3) == 0:
+                    self._add_bonus()
 
             # Check if the ball intersects with the right paddle
             if self.ball_poses[i][1] - self.radius < self.pad2_pos.bottom and \
@@ -73,20 +80,29 @@ class Pong:
                     self.ball_poses[i][0] - self.radius < self.pad2_pos.right and \
                     self.ball_poses[i][0] + self.radius > self.pad2_pos.left:
                 self.directions[i] = (-abs(self.directions[i][0]) * ACCELERATION, self.directions[i][1] * ACCELERATION)
+                if random.randint(0, 3) == 0:
+                    self._add_bonus()
 
             self.directions[i] = (numpy.clip(self.directions[i][0], -16, 16), numpy.clip(self.directions[i][1], -16, 16))
+
+            choices = [4, -4]
 
             # Check if ball intersects with the right side of the board
             if self.ball_poses[i][0] + self.radius >= WIDTH:
                 self.score = (self.score[0] + 1, self.score[1])
-                self.directions[i] = (-4, 4)
+                self.directions[i] = (choices[random.randint(0, 1)], choices[random.randint(0, 1)])
                 self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
             # Check if ball intersects with the left side of the board
             if self.ball_poses[i][0] - self.radius <= 0:
                 self.score = (self.score[0], self.score[1] + 1)
-                self.directions[i] = (-4, 4)
+                self.directions[i] = (choices[random.randint(0, 1)], choices[random.randint(0, 1)])
                 self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
+
+            for bonus_pos in self.bonuses:
+                dist_squared = (self.ball_poses[i][0] - bonus_pos[0]) ** 2 + (self.ball_poses[i][1] - bonus_pos[1]) ** 2
+                if (self.radius - self.radius / 2) ** 2 <= dist_squared <= (self.radius + self.radius / 2) ** 2:
+                    self.bonuses.remove(bonus_pos)
 
     def draw(self):
         pygame.draw.rect(self.DISPLAY, BLACK, ((0, 0), (WIDTH, HEIGHT)))
@@ -94,6 +110,9 @@ class Pong:
         # Draw the ball and bats
         for pos in self.ball_poses:
             pygame.draw.circle(self.DISPLAY, WHITE, (int(pos[0]), int(pos[1])), self.radius)
+
+        for pos in self.bonuses:
+            pygame.draw.circle(self.DISPLAY, WHITE, (int(pos[0]), int(pos[1])), int(self.radius / 2))
 
         pygame.draw.rect(self.DISPLAY, WHITE, self.pad1_pos)
         pygame.draw.rect(self.DISPLAY, WHITE, self.pad2_pos)
