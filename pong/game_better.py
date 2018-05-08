@@ -16,6 +16,8 @@ ACCELERATION = 1.2
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+choices = [4, -4]
+
 
 class Pong:
     def __init__(self):
@@ -26,8 +28,8 @@ class Pong:
         pygame.display.set_caption('FEARC')
 
         self.ball_poses = []
-        self.radius = 100
         self.directions = []
+        self.radius = 100
         self.pad1_pos = pygame.Rect(30, int(HEIGHT / 2), 60, 200)
         self.pad2_pos = pygame.Rect(WIDTH - 90, int(HEIGHT / 2), 60, 200)
 
@@ -43,14 +45,22 @@ class Pong:
         self.ball_poses.clear()
         self.directions.clear()
 
-        choices = [4, -4]
-
         for i in range(1):
             self.ball_poses.append((int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius)))
             self.directions.append((choices[random.randint(0, 1)], choices[random.randint(0, 1)]))
 
     def _add_bonus(self):
         self.bonuses.append((random.randint(200, WIDTH - 200), random.randint(200, HEIGHT - 200)))
+
+    def _apply_bonus(self):
+        bonus = random.randint(0, 1)
+
+        if bonus == 0:
+            self.ball_poses.append((int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius)))
+            self.directions.append((choices[random.randint(0, 1)], choices[random.randint(0, 1)]))
+        elif bonus == 1:
+            self.pad1_pos.height = self.pad1_pos.height * 2
+            self.pad2_pos.height = self.pad2_pos.height * 2
 
     def update(self):
         # Move the ball in the specified direction
@@ -85,8 +95,6 @@ class Pong:
 
             self.directions[i] = (numpy.clip(self.directions[i][0], -16, 16), numpy.clip(self.directions[i][1], -16, 16))
 
-            choices = [4, -4]
-
             # Check if ball intersects with the right side of the board
             if self.ball_poses[i][0] + self.radius >= WIDTH:
                 self.score = (self.score[0] + 1, self.score[1])
@@ -103,6 +111,7 @@ class Pong:
                 dist_squared = (self.ball_poses[i][0] - bonus_pos[0]) ** 2 + (self.ball_poses[i][1] - bonus_pos[1]) ** 2
                 if (self.radius - self.radius / 2) ** 2 <= dist_squared <= (self.radius + self.radius / 2) ** 2:
                     self.bonuses.remove(bonus_pos)
+                    self._apply_bonus()
 
     def draw(self):
         pygame.draw.rect(self.DISPLAY, BLACK, ((0, 0), (WIDTH, HEIGHT)))
