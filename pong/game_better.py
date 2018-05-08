@@ -92,13 +92,6 @@ class Pong:
             self.score = (self.score[0], self.score[1] + 1)
             self.direction = (x_dire, y_dire)
             self.ball_pos = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
-            # Check if ball intersects with the right side of the board
-            if right_player_loss:
-                self.score = (self.score[0] + 1, self.score[1])
-
-            # Check if ball intersects with the left side of the board
-            else:
-                self.score = (self.score[0], self.score[1] + 1)
 
     def draw(self):
         pygame.draw.rect(self.DISPLAY, BLACK, ((0, 0), (WIDTH, HEIGHT)))
