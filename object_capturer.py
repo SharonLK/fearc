@@ -1,9 +1,13 @@
+import sys
+from pong.game_better import Pong
 import cv2
 import json
 import numpy as np
 import time
 import os.path
 import pickle
+import pygame
+import random
 
 # define colors spectrums
 lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50]), 'orange':np.array([5, 50, 50],np.uint8)}
@@ -106,17 +110,18 @@ class objectCapturer:
         if self.is_calibrated:
             with open(r"calibrationCache.pkl", "rb") as calibration_file:
                 self.tform = pickle.load(calibration_file)
+
         self.first_frame = self.frame
+        self.calibrated_width, self.calibrated_height = 0, 0
 
     def get_locations(self):
         mask_full = objectCapturer.get_hue_mask(self.full_first_frame,self.frame)
-        cv2.imshow('maskfull', mask_full)
-        cv2.waitKey(1)
         if self.is_calibrated:
             self.frame = cv2.warpPerspective(self.frame, self.tform, (self.width, self.height))
+            self.calibrated_height, self.calibrated_width, _ = self.frame.shape
             mask_calibrated = cv2.warpPerspective(mask_full, self.tform, (self.width, self.height))
-            cv2.imshow('mask_calibrated', mask_calibrated)
-            cv2.waitKey(1)
+            # cv2.imshow('mask_calibrated', mask_calibrated)
+            # cv2.waitKey(1)
         else:
             mask_calibrated = mask_full
         (left_mask, right_mask) = self.split_image(mask_calibrated)
@@ -136,13 +141,13 @@ class objectCapturer:
         point_left, left_final = self.find_largest_object(left, left_mask)
         point_right, right_final = self.find_largest_object(right, right_mask)
         if point_right is not None:
-            point_right = (point_right[0], point_right[1] + self.width/2)
+            point_right = (point_right[0] + self.width/2, point_right[1])
         # putting images back together
         final_frame = np.concatenate((left_final, right_final), axis=1)
 
         # show frame
-        cv2.imshow('video', final_frame)
-        cv2.waitKey(1)
+        # cv2.imshow('video', final_frame)
+        # cv2.waitKey(1)
         ret, self.frame = self.cap.read()
         self.is_video_done = self.frame is None
         return point_left , point_right
@@ -151,12 +156,28 @@ class objectCapturer:
         self.cap.release()
         cv2.destroyAllWindows()
 
+
 if __name__ == "__main__":
     objectCapturer = objectCapturer()
+
+    pong = Pong()
+
     while not objectCapturer.is_video_done:
         pointL , pointR = objectCapturer.get_locations()
 
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
 
+        if pointL is not None:
+            pong.pad1_pos.center = (pong.pad1_pos.center[0], pointL[1])
+        if pointR is not None:
+            pong.pad2_pos.center = (pong.pad2_pos.center[0], pointR[1])
 
-    # When everything done, release the capture
+        pong.update()
+        pong.draw()
+        pygame.display.update()
 
+        # pong.FPS_CLOCK.tick(60)
