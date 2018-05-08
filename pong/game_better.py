@@ -1,8 +1,8 @@
-import numpy
 import os
-import sys
 import random
+import sys
 
+import numpy
 import pygame
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -10,7 +10,6 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 WIDTH = 1920
 HEIGHT = 1080
 
-RADIUS = 20
 ACCELERATION = 1.2
 
 WHITE = (255, 255, 255)
@@ -20,27 +19,28 @@ BLACK = (0, 0, 0)
 class Pong:
     def __init__(self):
         self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
+        self.radius = 45
         self.direction = (4, 4)
-        self.pad1_pos = pygame.Rect(20, int(HEIGHT / 2), 40, 200)
-        self.pad2_pos = pygame.Rect(WIDTH - 50, int(HEIGHT / 2), 40, 200)
+        self.pad1_pos = pygame.Rect(30, int(HEIGHT / 2), 60, 200)
+        self.pad2_pos = pygame.Rect(WIDTH - 90, int(HEIGHT / 2), 60, 200)
 
         self.mousex = 0
         self.mousey = 0
 
         self.score = (0, 0)
 
-        self.font = pygame.font.Font('freesansbold.ttf', 64)
+        self.font = pygame.font.Font('freesansbold.ttf', 192)
 
     def update(self):
         # Move the ball in the specified direction
         self.ball_pos = (self.ball_pos[0] + self.direction[0], self.ball_pos[1] + self.direction[1])
 
         # If ball intersects with the bottom of the screen
-        if self.ball_pos[1] + RADIUS >= HEIGHT:
+        if self.ball_pos[1] + self.radius >= HEIGHT:
             self.direction = (self.direction[0], -abs(self.direction[1]))
 
         # If ball intersects with the top of the screen
-        if self.ball_pos[1] - RADIUS <= 0:
+        if self.ball_pos[1] - self.radius <= 0:
             self.direction = (self.direction[0], abs(self.direction[1]))
 
         # Temporary - set the center height of the paddles as the Y coordinate of the mouse
@@ -48,17 +48,17 @@ class Pong:
         self.pad2_pos.center = (self.pad2_pos.center[0], self.mousey)
 
         # Check if the ball intersects with the left paddle
-        if self.ball_pos[1] - RADIUS < self.pad1_pos.bottom and \
-                self.ball_pos[1] + RADIUS > self.pad1_pos.top and \
-                self.ball_pos[0] - RADIUS < self.pad1_pos.right and \
-                self.ball_pos[0] + RADIUS > self.pad1_pos.left:
+        if self.ball_pos[1] - self.radius < self.pad1_pos.bottom and \
+                self.ball_pos[1] + self.radius > self.pad1_pos.top and \
+                self.ball_pos[0] - self.radius < self.pad1_pos.right and \
+                self.ball_pos[0] + self.radius > self.pad1_pos.left:
             self.direction = (abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
 
         # Check if the ball intersects with the right paddle
-        if self.ball_pos[1] - RADIUS < self.pad2_pos.bottom and \
-                self.ball_pos[1] + RADIUS > self.pad2_pos.top and \
-                self.ball_pos[0] - RADIUS < self.pad2_pos.right and \
-                self.ball_pos[0] + RADIUS > self.pad2_pos.left:
+        if self.ball_pos[1] - self.radius < self.pad2_pos.bottom and \
+                self.ball_pos[1] + self.radius > self.pad2_pos.top and \
+                self.ball_pos[0] - self.radius < self.pad2_pos.right and \
+                self.ball_pos[0] + self.radius > self.pad2_pos.left:
             self.direction = (-abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
 
         self.direction = (numpy.clip(self.direction[0], -12, 12), numpy.clip(self.direction[1], -12, 12))
@@ -67,33 +67,36 @@ class Pong:
         x_dire = random.choice(available_directions)
         y_dire = random.choice(available_directions)
 
-
         # Check if ball intersects with the right side of the board
-        if self.ball_pos[0] + RADIUS >= WIDTH:
+        if self.ball_pos[0] + self.radius >= WIDTH:
             self.score = (self.score[0] + 1, self.score[1])
             self.direction = (x_dire, y_dire)
-            self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
+            self.ball_pos = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
         # Check if ball intersects with the left side of the board
-        if self.ball_pos[0] - RADIUS <= 0:
+        if self.ball_pos[0] - self.radius <= 0:
             self.score = (self.score[0], self.score[1] + 1)
             self.direction = (x_dire, y_dire)
-            self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
+            self.ball_pos = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
     def draw(self):
-        pygame.draw.circle(DISPLAY, WHITE, (int(self.ball_pos[0]), int(self.ball_pos[1])), RADIUS)
+        # Draw the ball and bats
+        pygame.draw.circle(DISPLAY, WHITE, (int(self.ball_pos[0]), int(self.ball_pos[1])), self.radius)
         pygame.draw.rect(DISPLAY, WHITE, self.pad1_pos)
         pygame.draw.rect(DISPLAY, WHITE, self.pad2_pos)
 
-        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, 20, HEIGHT))
-        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, WIDTH, 20))
-        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(WIDTH - 20, 0, 20, HEIGHT))
-        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, HEIGHT - 20, WIDTH, 20))
+        # Draw the boundary
+        BORDER_WIDTH = 30
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, BORDER_WIDTH, HEIGHT))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, WIDTH, BORDER_WIDTH))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(WIDTH - BORDER_WIDTH, 0, BORDER_WIDTH, HEIGHT))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, HEIGHT - BORDER_WIDTH, WIDTH, BORDER_WIDTH))
 
-        surf = self.font.render("{}".format(self.score[0]), True, (124, 174, 205))
+        # Draw the score
+        surf = self.font.render("{}".format(self.score[0]), True, WHITE)
         DISPLAY.blit(surf, (200, 75))
-        surf = self.font.render("{}".format(self.score[1]), True, (124, 174, 205))
-        DISPLAY.blit(surf, (WIDTH - 200, 75))
+        surf = self.font.render("{}".format(self.score[1]), True, WHITE)
+        DISPLAY.blit(surf, (WIDTH - 270, 75))
 
 
 if __name__ == "__main__":
@@ -102,7 +105,7 @@ if __name__ == "__main__":
     pygame.init()
 
     FPS_CLOCK = pygame.time.Clock()
-    DISPLAY = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+    DISPLAY = pygame.display.set_mode([WIDTH, HEIGHT], pygame.DOUBLEBUF)
     pygame.display.set_caption('FEARC')
 
     pong = Pong()
@@ -125,4 +128,3 @@ if __name__ == "__main__":
         pygame.display.update()
 
         FPS_CLOCK.tick(120)
-
