@@ -9,6 +9,8 @@ import pickle
 import pygame
 import random
 
+DEBUG = False
+
 # define colors spectrums
 lower_limits = {'green':np.array([90,0,0]),'blue':np.array([110,50,50]), 'orange':np.array([5, 50, 50],np.uint8)}
 upper_limits = {'green':np.array([130,255,255]),'blue':np.array([130,255,255]),'orange':np.array([15, 255, 255],np.uint8)}
@@ -120,8 +122,9 @@ class objectCapturer:
             self.frame = cv2.warpPerspective(self.frame, self.tform, (self.width, self.height))
             self.calibrated_height, self.calibrated_width, _ = self.frame.shape
             mask_calibrated = cv2.warpPerspective(mask_full, self.tform, (self.width, self.height))
-            # cv2.imshow('mask_calibrated', mask_calibrated)
-            # cv2.waitKey(1)
+            if DEBUG:
+                cv2.imshow('mask_calibrated', mask_calibrated)
+                cv2.waitKey(1)
         else:
             mask_calibrated = mask_full
         (left_mask, right_mask) = self.split_image(mask_calibrated)
@@ -146,8 +149,9 @@ class objectCapturer:
         final_frame = np.concatenate((left_final, right_final), axis=1)
 
         # show frame
-        # cv2.imshow('video', final_frame)
-        # cv2.waitKey(1)
+        if DEBUG:
+            cv2.imshow('video', final_frame)
+            cv2.waitKey(1)
         ret, self.frame = self.cap.read()
         self.is_video_done = self.frame is None
         return point_left , point_right

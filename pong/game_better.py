@@ -25,9 +25,9 @@ class Pong:
         self.DISPLAY = pygame.display.set_mode([WIDTH, HEIGHT], pygame.DOUBLEBUF)
         pygame.display.set_caption('FEARC')
 
-        self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
+        self.ball_poses = [(int(WIDTH / 2), int(HEIGHT / 2))]
         self.radius = 45
-        self.direction = (4, 4)
+        self.directions = [(4, 4)]
         self.pad1_pos = pygame.Rect(30, int(HEIGHT / 2), 60, 200)
         self.pad2_pos = pygame.Rect(WIDTH - 90, int(HEIGHT / 2), 60, 200)
 
@@ -40,64 +40,52 @@ class Pong:
 
     def update(self):
         # Move the ball in the specified direction
-        self.ball_pos = (self.ball_pos[0] + self.direction[0], self.ball_pos[1] + self.direction[1])
+        for i, (pos, direction) in enumerate(zip(self.ball_poses, self.directions)):
+            self.ball_poses[i] = (pos[0] + direction[0], pos[1] + direction[1])
 
-        # If ball intersects with the bottom of the screen
-        if self.ball_pos[1] + self.radius >= HEIGHT:
-            self.direction = (self.direction[0], -abs(self.direction[1]))
+            # If ball intersects with the bottom of the screen
+            if pos[1] + self.radius >= HEIGHT:
+                self.directions[i] = (direction[0], -abs(direction[1]))
 
-        # If ball intersects with the top of the screen
-        if self.ball_pos[1] - self.radius <= 0:
-            self.direction = (self.direction[0], abs(self.direction[1]))
+            # If ball intersects with the top of the screen
+            if pos[1] - self.radius <= 0:
+                self.directions[i] = (direction[0], abs(direction[1]))
 
-        # Temporary - set the center height of the paddles as the Y coordinate of the mouse
-        # self.pad1_pos.center = (self.pad1_pos.center[0], self.mousey)
-        # self.pad2_pos.center = (self.pad2_pos.center[0], self.mousey)
+            # Check if the ball intersects with the left paddle
+            if pos[1] - self.radius < self.pad1_pos.bottom and \
+                    pos[1] + self.radius > self.pad1_pos.top and \
+                    pos[0] - self.radius < self.pad1_pos.right and \
+                    pos[0] + self.radius > self.pad1_pos.left:
+                self.directions[i] = (abs(direction[0]) * ACCELERATION, direction[1] * ACCELERATION)
 
-        # Check if the ball intersects with the left paddle
-        if self.ball_pos[1] - self.radius < self.pad1_pos.bottom and \
-                self.ball_pos[1] + self.radius > self.pad1_pos.top and \
-                self.ball_pos[0] - self.radius < self.pad1_pos.right and \
-                self.ball_pos[0] + self.radius > self.pad1_pos.left:
-            self.direction = (abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
+            # Check if the ball intersects with the right paddle
+            if pos[1] - self.radius < self.pad2_pos.bottom and \
+                    pos[1] + self.radius > self.pad2_pos.top and \
+                    pos[0] - self.radius < self.pad2_pos.right and \
+                    pos[0] + self.radius > self.pad2_pos.left:
+                self.directions[i] = (-abs(direction[0]) * ACCELERATION, direction[1] * ACCELERATION)
 
-        # Check if the ball intersects with the right paddle
-        if self.ball_pos[1] - self.radius < self.pad2_pos.bottom and \
-                self.ball_pos[1] + self.radius > self.pad2_pos.top and \
-                self.ball_pos[0] - self.radius < self.pad2_pos.right and \
-                self.ball_pos[0] + self.radius > self.pad2_pos.left:
-            self.direction = (-abs(self.direction[0]) * ACCELERATION, self.direction[1] * ACCELERATION)
+            self.directions[i] = (numpy.clip(direction[0], -16, 16), numpy.clip(direction[1], -16, 16))
 
-        self.direction = (numpy.clip(self.direction[0], -16, 16), numpy.clip(self.direction[1], -16, 16))
+            # Check if ball intersects with the right side of the board
+            if pos[0] + self.radius >= WIDTH:
+                self.score = (self.score[0] + 1, self.score[1])
+                self.directions[i] = (-4, 4)
+                self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
-        # Check if ball intersects with the right side of the board
-        right_player_loss = self.ball_pos[0] + self.radius >= WIDTH
-        # Check if ball intersects with the left side of the board
-        left_player_loss = self.ball_pos[0] - self.radius <= 0
-
-        if right_player_loss or left_player_loss:
-            # init the random position and direction for the ball
-            available_directions = [-4, 4]
-            x_dire = random.choice(available_directions)
-            y_dire = random.choice(available_directions)
-
-        # Check if ball intersects with the right side of the board
-        if self.ball_pos[0] + self.radius >= WIDTH:
-            self.score = (self.score[0] + 1, self.score[1])
-            self.direction = (x_dire, y_dire)
-            self.ball_pos = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
-
-        # Check if ball intersects with the left side of the board
-        if self.ball_pos[0] - self.radius <= 0:
-            self.score = (self.score[0], self.score[1] + 1)
-            self.direction = (x_dire, y_dire)
-            self.ball_pos = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
+            # Check if ball intersects with the left side of the board
+            if pos[0] - self.radius <= 0:
+                self.score = (self.score[0], self.score[1] + 1)
+                self.directions[i] = (-4, 4)
+                self.ball_poses[i] = (int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius))
 
     def draw(self):
         pygame.draw.rect(self.DISPLAY, BLACK, ((0, 0), (WIDTH, HEIGHT)))
 
         # Draw the ball and bats
-        pygame.draw.circle(self.DISPLAY, WHITE, (int(self.ball_pos[0]), int(self.ball_pos[1])), self.radius)
+        for pos in self.ball_poses:
+            pygame.draw.circle(self.DISPLAY, WHITE, (int(pos[0]), int(pos[1])), self.radius)
+
         pygame.draw.rect(self.DISPLAY, WHITE, self.pad1_pos)
         pygame.draw.rect(self.DISPLAY, WHITE, self.pad2_pos)
 
