@@ -63,16 +63,21 @@ class Pong:
 
         self.direction = (numpy.clip(self.direction[0], -12, 12), numpy.clip(self.direction[1], -12, 12))
 
+        available_directions = [-4, 4]
+        x_dire = random.choice(available_directions)
+        y_dire = random.choice(available_directions)
+
+
         # Check if ball intersects with the right side of the board
         if self.ball_pos[0] + RADIUS >= WIDTH:
             self.score = (self.score[0] + 1, self.score[1])
-            self.direction = (4, 4)
+            self.direction = (x_dire, y_dire)
             self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
 
         # Check if ball intersects with the left side of the board
         if self.ball_pos[0] - RADIUS <= 0:
             self.score = (self.score[0], self.score[1] + 1)
-            self.direction = (4, 4)
+            self.direction = (x_dire, y_dire)
             self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
 
     def draw(self):
@@ -101,12 +106,18 @@ if __name__ == "__main__":
     pygame.display.set_caption('FEARC')
 
     pong = Pong()
-
-    while True:
+    running = True
+    print("start")
+    while running:
         for event in pygame.event.get():
+            print(event)
             if event.type == pygame.QUIT:
+                print("exit key")
+
                 pygame.quit()
+                running = False  # Be interpreter friendly
                 sys.exit()
+
             elif event.type == pygame.MOUSEMOTION:
                 pong.mousex = event.pos[0]
                 pong.mousey = event.pos[1]
@@ -119,3 +130,4 @@ if __name__ == "__main__":
         pygame.display.update()
 
         FPS_CLOCK.tick(120)
+
