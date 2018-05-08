@@ -1,13 +1,14 @@
 import numpy
 import os
 import sys
+import random
 
 import pygame
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-WIDTH = 1700
-HEIGHT = 900
+WIDTH = 1280
+HEIGHT = 720
 
 RADIUS = 20
 ACCELERATION = 1.2
@@ -66,18 +67,23 @@ class Pong:
         if self.ball_pos[0] + RADIUS >= WIDTH:
             self.score = (self.score[0] + 1, self.score[1])
             self.direction = (4, 4)
-            self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
+            self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
 
         # Check if ball intersects with the left side of the board
         if self.ball_pos[0] - RADIUS <= 0:
             self.score = (self.score[0], self.score[1] + 1)
             self.direction = (4, 4)
-            self.ball_pos = (int(WIDTH / 2), int(HEIGHT / 2))
+            self.ball_pos = (int(WIDTH / 2), random.randint(RADIUS, HEIGHT - RADIUS))
 
     def draw(self):
         pygame.draw.circle(DISPLAY, WHITE, (int(self.ball_pos[0]), int(self.ball_pos[1])), RADIUS)
         pygame.draw.rect(DISPLAY, WHITE, self.pad1_pos)
         pygame.draw.rect(DISPLAY, WHITE, self.pad2_pos)
+
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, 20, HEIGHT))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, 0, WIDTH, 20))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(WIDTH - 20, 0, 20, HEIGHT))
+        pygame.draw.rect(DISPLAY, WHITE, pygame.Rect(0, HEIGHT - 20, WIDTH, 20))
 
         surf = self.font.render("{}".format(self.score[0]), True, (124, 174, 205))
         DISPLAY.blit(surf, (200, 75))
@@ -91,7 +97,7 @@ if __name__ == "__main__":
     pygame.init()
 
     FPS_CLOCK = pygame.time.Clock()
-    DISPLAY = pygame.display.set_mode((WIDTH, HEIGHT))
+    DISPLAY = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     pygame.display.set_caption('FEARC')
 
     pong = Pong()
