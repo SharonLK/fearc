@@ -45,12 +45,13 @@ class Pong:
         self.ball_poses.clear()
         self.directions.clear()
 
-        for i in range(1):
+        for i in range(2):
             self.ball_poses.append((int(WIDTH / 2), random.randint(self.radius, HEIGHT - self.radius)))
             self.directions.append((choices[random.randint(0, 1)], choices[random.randint(0, 1)]))
 
     def _add_bonus(self):
-        self.bonuses.append((random.randint(200, WIDTH - 200), random.randint(200, HEIGHT - 200)))
+        self.bonuses = []
+        # self.bonuses.append((random.randint(200, WIDTH - 200), random.randint(200, HEIGHT - 200)))
 
     def _apply_bonus(self):
         bonus = random.randint(0, 1)
